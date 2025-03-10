@@ -24,13 +24,20 @@ class UserController extends Controller
 
         $activeMenu = 'user';
 
-        return view('user.index', compact('breadcrumb', 'page', 'activeMenu'));
+        $level = LevelModel::all();
+
+        return view('user.index', compact('breadcrumb', 'page','level', 'activeMenu'));
     }
 
     public function list(Request $request)
     {
         $users = UserModel::select('user_id', 'username', 'nama', 'level_id')
             ->with('level');
+
+            if ($request->level_id) {
+                $users->where('level_id', $request->level_id);
+            }
+
         return DataTables::of($users)
             // menambahkan kolom index / no urut (default nama kolom: DT_RowIndex)
             ->addIndexColumn()
