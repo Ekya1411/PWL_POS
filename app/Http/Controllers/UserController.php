@@ -29,6 +29,46 @@ class UserController extends Controller
         return view('user.index', compact('breadcrumb', 'page','level', 'activeMenu'));
     }
 
+    public function daftarSupplier()
+    {
+        $breadcrumb = (object) [
+            'title' => 'Daftar Supplier',
+            'list' => ['Home', 'User']
+        ];
+
+        $page = (object) [
+            'title' => 'Daftar User yang terdaftar pada sistem',
+        ];
+
+        $activeMenu = 'user';
+
+        $level = LevelModel::all();
+
+        return view('user.supplier', compact('breadcrumb', 'page','level', 'activeMenu'));
+    }
+
+    public function supplierList(Request $request)
+    {
+        $users = UserModel::select('user_id', 'username', 'nama', 'level_id')
+            ->with('level')
+            ->where('level_id', 8);
+
+        return DataTables::of($users)
+            // menambahkan kolom index / no urut (default nama kolom: DT_RowIndex)
+            ->addIndexColumn()
+            ->addColumn('aksi', function ($user) { // menambahkan kolom aksi
+                $btn = '<a href="' . url('/user/' . $user->user_id) . '" class="btn btn-info btn-sm">Detail</a> ';
+                $btn .= '<a href="' . url('/user/' . $user->user_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
+                $btn .= '<form class="d-inline-block" method="POST" action="' .
+                    url('/user/' . $user->user_id) . '">'
+                    . csrf_field() . method_field('DELETE') .
+                    '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakit menghapus data ini?\');">Hapus</button></form>';
+                return $btn;
+            })
+            ->rawColumns(['aksi']) // memberitahu bahwa kolom aksi adalah html
+            ->make(true);
+    }
+
     public function list(Request $request)
     {
         $users = UserModel::select('user_id', 'username', 'nama', 'level_id')
@@ -70,25 +110,6 @@ class UserController extends Controller
         $activeMenu = 'user';
 
         return view('user.create', compact('breadcrumb', 'page', 'level', 'activeMenu'));
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'username' => 'required|string|min:3|unique:m_user,username',
-            'password' => 'required|string|max:100',
-            'nama' => 'required|min:5',
-            'level_id' => 'required|integer',
-        ]);
-
-        UserModel::create([
-            'username' => $request->username,
-            'nama' => $request->nama,
-            'password' => bcrypt($request->password),
-            'level_id' => $request->level_id,
-        ]);
-
-        return redirect('/user')->with('success', 'Data user berhasil ditambahkan');
     }
 
     public function show(string $id)
@@ -152,12 +173,13 @@ class UserController extends Controller
         if(!$check) {
             return redirect('/user')->with('error', 'Data user tidak ditemukan');
         }
-
         try {
             UserModel::destroy($id);
             return redirect('/user') -> with('success', 'Data user berhasil dihapus');
         } catch (\Illuminate\Database\QueryException $e) {
             return redirect('/user')->with('error', 'Data user gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
         }
+
+
     }
 }
