@@ -4,7 +4,9 @@
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
-                <a class="btn btn-sm btn-primary mt-1" href="{{ url('barang/kategori/create') }}">Tambah</a>
+                <a class="btn btn-sm btn-primary mt-1" href="{{ url('kategori/create') }}">Tambah</a>
+                <button onclick="modalAction('{{ url('kategori/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah
+                    Ajax</button>
             </div>
         </div>
         <div class="card-body">
@@ -18,25 +20,32 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Kategori Kode</th>
-                        <th>Kategori Nama</th>
+                        <th>Kode Kategori</th>
+                        <th>Nama Kategori</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
             </table>
         </div>
     </div>
+    <div id="myModal" class="modal fade animate shake" tabindex="-1" role="dialog" databackdrop="static"
+        data-keyboard="false" data-width="75%" aria-hidden="true"></div>
 @endsection
 @push('css')
 @endpush
 @push('js')
     <script>
+        function modalAction(url = '/kategori') {
+            $('#myModal').load(url, function() {
+                $('#myModal').modal('show');
+            });
+        }
         $(document).ready(function() {
-            var dataKategori = $('#table_kategori').DataTable({
+            var dataUser = $('#table_kategori').DataTable({
                 // serverSide: true, jika ingin menggunakan server side processing
                 serverSide: true,
                 ajax: {
-                    "url": "{{ url('barang/list_kategori') }}",
+                    "url": "{{ url('kategori/list') }}",
                     "dataType": "json",
                     "type": "POST",
                 },
@@ -62,6 +71,9 @@
                     orderable: false,
                     searchable: false
                 }]
+            });
+            $('#kategori_id').on('change', function() {
+                dataUser.ajax.reload();
             });
         });
     </script>

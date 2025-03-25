@@ -6,6 +6,7 @@ use App\Models\BarangModel;
 use App\Models\KategoriModel;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class BarangController extends Controller
@@ -27,10 +28,10 @@ class BarangController extends Controller
 
         $kategori = KategoriModel::all();
 
-        return view('data_barang.daftar_barang', compact('breadcrumb', 'page', 'kategori', 'activeMenu'));
+        return view('barang.index', compact('breadcrumb', 'page', 'kategori', 'activeMenu'));
     }
 
-    public function listBarang(Request $request)
+    public function list(Request $request)
     {
         $barang = BarangModel::with('kategori')
             ->select('barang_id', 'kategori_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual');
@@ -45,11 +46,17 @@ class BarangController extends Controller
                 return $barang->kategori ? $barang->kategori->kategori_nama : '-';
             })
             ->addColumn('aksi', function ($barang) { // menambahkan kolom aksi
-                $btn = '<a href="' . url('/barang/' . $barang->barang_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
-                $btn .= '<form class="d-inline-block" method="POST" action="' .
-                    url('/barang/' . $barang->barang_id . '/delete') . '">'
-                    . csrf_field() . method_field('DELETE') .
-                    '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakit menghapus data ini?\');">Hapus</button></form>';
+                // $btn = '<a href="' . url('/barang/' . $barang->barang_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
+                // $btn .= '<form class="d-inline-block" method="POST" action="' .
+                //     url('/barang/' . $barang->barang_id . '/delete') . '">'
+                //     . csrf_field() . method_field('DELETE') .
+                //     '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakit menghapus data ini?\');">Hapus</button></form>';
+                $btn = '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
+                    '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
+                    '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
+                    '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
                 return $btn;
             })
             ->rawColumns(['aksi']) // memberitahu bahwa kolom aksi adalah html
@@ -72,7 +79,7 @@ class BarangController extends Controller
 
         $activeMenu = 'barang';
 
-        return view('data_barang.edit_barang', ['breadcrumb' => $breadcrumb, 'page' => $page, 'activeMenu' => $activeMenu, 'barang' => $barang, 'kategori' => $kategori]);
+        return view('barang.edit', ['breadcrumb' => $breadcrumb, 'page' => $page, 'activeMenu' => $activeMenu, 'barang' => $barang, 'kategori' => $kategori]);
     }
 
     public function create()
@@ -90,7 +97,7 @@ class BarangController extends Controller
 
         $activeMenu = 'barang';
 
-        return view('data_barang.create_barang', compact('breadcrumb', 'kategori', 'page', 'activeMenu'));
+        return view('barang.create', compact('breadcrumb', 'kategori', 'page', 'activeMenu'));
     }
 
     public function store(Request $request)
@@ -111,169 +118,190 @@ class BarangController extends Controller
             'harga_jual' => $request->harga_jual,
         ]);
 
-        return redirect('/barang/data_barang')->with('success', 'Data barang berhasil ditambahkan');
+        return redirect('/barang/')->with('success', 'Data barang berhasil ditambahkan');
     }
 
     public function update(Request $request, string $id)
-{
-    $request->validate([
-        'kategori_id' => 'required|integer|exists:m_kategori,kategori_id',
-        'barang_kode' => [
-            'required',
-            'string',
-            'min:3',
-            Rule::unique('m_barang', 'barang_kode')->ignore($id, 'barang_id')
-        ],
-        'barang_nama' => 'required|string|min:3',
-        'harga_beli' => 'required|numeric|min:0',
-        'harga_jual' => 'required|numeric|min:0|gte:harga_beli', // harga jual tidak boleh lebih kecil dari harga beli
-    ]);
-
-    $barang = BarangModel::findOrFail($id);
-    $barang->update([
-        'kategori_id' => $request->kategori_id,
-        'barang_kode' => $request->barang_kode,
-        'barang_nama' => $request->barang_nama,
-        'harga_beli' => $request->harga_beli,
-        'harga_jual' => $request->harga_jual,
-    ]);
-
-    return redirect('/barang/data_barang')->with('success', 'Data barang berhasil diperbarui');
-}
-
-public function destroy(string $id)
-{
-    $check = BarangModel::find($id);
-    if (!$check) {
-        return redirect('/barang/data_barang')->with('error', 'Data user tidak ditemukan');
-    }
-    try {
-        BarangModel::destroy($id);
-        return redirect('/barang/data_barang')->with('success', 'Data user berhasil dihapus');
-    } catch (\Illuminate\Database\QueryException $e) {
-        return redirect('/barang/data_barang')->with('error', 'Data user gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
-    }
-}
-
-    public function kategoriScreen()
-    {
-        $breadcrumb = (object) [
-            'title' => 'Daftar Kategori',
-            'list' => ['Home', 'Data Kategori']
-        ];
-
-        $page = (object) [
-            'title' => 'Daftar Kategori Barang yang terdaftar pada sistem',
-        ];
-
-        $activeMenu = 'kategori';
-
-
-        return view('data_barang.daftar_kategori', compact('breadcrumb', 'page', 'activeMenu'));
-    }
-
-    public function listKategori(Request $request)
-    {
-        $barang = KategoriModel::select('kategori_id', 'kategori_kode', 'kategori_nama');
-
-        return DataTables::of($barang)
-            // menambahkan kolom index / no urut (default nama kolom: DT_RowIndex)
-            ->addIndexColumn()
-            ->addColumn('aksi', function ($kategori) { // menambahkan kolom aksi
-                $btn = '<a href="' . url('/barang/kategori/' . $kategori->kategori_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
-                $btn .= '<form class="d-inline-block" method="POST" action="' .
-                    url('/barang/kategori/' . $kategori->kategori_id) . '/delete">'
-                    . csrf_field() . method_field('DELETE') .
-                    '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakit menghapus data ini?\');">Hapus</button></form>';
-                return $btn;
-            })
-            ->rawColumns(['aksi']) // memberitahu bahwa kolom aksi adalah html
-            ->make(true);
-    }
-
-    public function createKategori()
-    {
-        $breadcrumb = (object) [
-            'title' => 'Tambah Kategori',
-            'list' => ['Home', 'Kategori', 'Tambah']
-        ];
-
-        $page = (object) [
-            'title' => 'Tambah Kategori Baru',
-        ];
-
-        $activeMenu = 'kategori';
-
-        return view('data_barang.create_kategori', compact('breadcrumb', 'page', 'activeMenu'));
-    }
-
-    public function storeKategori(Request $request)
     {
         $request->validate([
-            'kategori_kode' => 'required|string|min:3|unique:m_kategori,kategori_kode',
-            'kategori_nama' => 'required|min:5',
-        ]);
-
-        KategoriModel::create([
-            'kategori_kode' => $request->kategori_kode,
-            'kategori_nama' => $request->kategori_nama,
-        ]);
-
-        return redirect('/barang/data_kategori')->with('success', 'Data kategori berhasil ditambahkan');
-    }
-
-    public function editKategori(string $id)
-    {
-        $kategori = KategoriModel::find($id);
-        $level = KategoriModel::find($id);
-
-        $breadcrumb = (object) [
-            'title' => 'Edit kategori',
-            'list' => ['Home', 'kategori', 'Edit']
-        ];
-
-        $page = (object) [
-            'title' => 'Edit kategori',
-        ];
-
-        $activeMenu = 'kategori';
-
-        return view('data_barang.edit_kategori', ['breadcrumb' => $breadcrumb, 'page' => $page, 'level' => $level, 'activeMenu' => $activeMenu, 'kategori' => $kategori]);
-    }
-
-    public function updateKategori(Request $request, string $id)
-    {
-        $request->validate([
-            'kategori_kode' => [
+            'kategori_id' => 'required|integer|exists:m_kategori,kategori_id',
+            'barang_kode' => [
                 'required',
                 'string',
                 'min:3',
-                Rule::unique('m_kategori', 'kategori_kode')->ignore($id, 'kategori_id')
+                Rule::unique('m_barang', 'barang_kode')->ignore($id, 'barang_id')
             ],
-            'kategori_nama' => 'required|min:5',
+            'barang_nama' => 'required|string|min:3',
+            'harga_beli' => 'required|numeric|min:0',
+            'harga_jual' => 'required|numeric|min:0|gte:harga_beli', // harga jual tidak boleh lebih kecil dari harga beli
         ]);
 
-        $kategori = KategoriModel::findOrFail($id);
-        $kategori->update([
-            'kategori_kode' => $request->kategori_kode,
-            'kategori_nama' => $request->kategori_nama,
+        $barang = BarangModel::findOrFail($id);
+        $barang->update([
+            'kategori_id' => $request->kategori_id,
+            'barang_kode' => $request->barang_kode,
+            'barang_nama' => $request->barang_nama,
+            'harga_beli' => $request->harga_beli,
+            'harga_jual' => $request->harga_jual,
         ]);
 
-        return redirect('/barang/data_kategori')->with('success', 'Data kategori berhasil diubah');
+        return redirect('/barang/')->with('success', 'Data barang berhasil diperbarui');
     }
 
-    public function destroyKategori(string $id)
+    public function destroy(string $id)
     {
-        $check = KategoriModel::find($id);
+        $check = BarangModel::find($id);
         if (!$check) {
-            return redirect('/barang/data_kategori')->with('error', 'Data user tidak ditemukan');
+            return redirect('/barang/')->with('error', 'Data user tidak ditemukan');
         }
-
         try {
-            KategoriModel::destroy($id);
-            return redirect('/barang/data_kategori')->with('success', 'Data user berhasil dihapus');
+            BarangModel::destroy($id);
+            return redirect('/barang/')->with('success', 'Data user berhasil dihapus');
         } catch (\Illuminate\Database\QueryException $e) {
-            return redirect('/barang/data_kategori')->with('error', 'Data user gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
+            return redirect('/barang/')->with('error', 'Data user gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini');
         }
     }
+
+    public function create_ajax()
+    {
+        $kategori = KategoriModel::all();
+
+        return view('barang.create_ajax', compact('kategori'));
+    }
+
+    public function store_ajax(Request $request)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'kategori_id'   => 'required|exists:m_kategori,kategori_id',
+                'barang_kode'   => 'required|string|min:3|max:6|unique:m_barang,barang_kode',
+                'barang_nama'   => 'required|string|min:3|max:50|unique:m_barang,barang_nama',
+                'harga_beli'    => 'required|numeric|min:0',
+                'harga_jual'    => 'required|numeric|min:0',
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validasi Gagal',
+                    'msgField' => $validator->errors(),
+                ]);
+            }
+
+            BarangModel::create([
+                'kategori_id'   => $request->kategori_id,
+                'barang_kode'   => $request->barang_kode,
+                'barang_nama'   => $request->barang_nama,
+                'harga_beli'    => $request->harga_beli,
+                'harga_jual'    => $request->harga_jual,
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data barang berhasil disimpan',
+            ]);
+        }
+
+        return redirect('/barang/');
+    }
+
+
+    public function show_ajax(string $id)
+    {
+        $barang = BarangModel::find($id);
+        return view('barang.show_ajax', compact('barang'));
+    }
+
+    public function edit_ajax(string $id)
+    {
+        $barang = BarangModel::find($id);
+        $kategori = KategoriModel::all();
+
+        return view('barang.edit_ajax', compact('barang', 'kategori'));
+    }
+
+    public function update_ajax(Request $request, $id)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            $rules = [
+                'kategori_id'   => 'required|exists:m_kategori,kategori_id',
+                'barang_kode'   => 'required|string|min:3|max:6|unique:m_barang,barang_kode,' . $id . ',barang_id',
+                'barang_nama'   => 'required|string|min:3|max:50|unique:m_barang,barang_nama,' . $id . ',barang_id',
+                'harga_beli'    => 'required|numeric|min:0',
+                'harga_jual'    => 'required|numeric|min:0',
+            ];
+    
+            $validator = Validator::make($request->all(), $rules);
+    
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Validasi Gagal',
+                    'msgField' => $validator->errors(),
+                ]);
+            }
+    
+            $barang = BarangModel::find($id);
+            if (!$barang) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Data tidak ditemukan'
+                ]);
+            }
+    
+            $barang->update([
+                'kategori_id'   => $request->kategori_id,
+                'barang_kode'   => $request->barang_kode,
+                'barang_nama'   => $request->barang_nama,
+                'harga_beli'    => $request->harga_beli,
+                'harga_jual'    => $request->harga_jual,
+            ]);
+    
+            return response()->json([
+                'status' => true,
+                'message' => 'Data barang berhasil diubah',
+            ]);
+        }
+    
+        return redirect('/barang/');
+    }
+    
+
+    public function confirm_ajax(string $id)
+    {
+        $barang = BarangModel::find($id);
+        return view('barang.confirm_ajax', compact('barang'));
+    }
+
+    public function destroy_ajax(Request $request, string $id)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            $barang = BarangModel::find($id);
+    
+            if (!$barang) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Data barang tidak ditemukan',
+                ]);
+            }
+    
+            try {
+                $barang->delete();
+    
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Data barang berhasil dihapus',
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Data barang gagal dihapus karena masih terdapat tabel lain yang terkait dengan data ini',
+                ]);
+            }
+        }
+    
+        return redirect('/barang');
+    }    
 }

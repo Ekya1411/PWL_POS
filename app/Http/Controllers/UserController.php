@@ -34,14 +34,14 @@ class UserController extends Controller
     {
         $breadcrumb = (object) [
             'title' => 'Daftar Supplier',
-            'list' => ['Home', 'User']
+            'list' => ['Home', 'Supplier']
         ];
 
         $page = (object) [
             'title' => 'Daftar User yang terdaftar pada sistem',
         ];
 
-        $activeMenu = 'user';
+        $activeMenu = 'supplier';
 
         $level = LevelModel::all();
 
@@ -58,16 +58,29 @@ class UserController extends Controller
             // menambahkan kolom index / no urut (default nama kolom: DT_RowIndex)
             ->addIndexColumn()
             ->addColumn('aksi', function ($user) { // menambahkan kolom aksi
-                $btn = '<a href="' . url('/user/' . $user->user_id) . '" class="btn btn-info btn-sm">Detail</a> ';
-                $btn .= '<a href="' . url('/user/' . $user->user_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
-                $btn .= '<form class="d-inline-block" method="POST" action="' .
-                    url('/user/' . $user->user_id) . '">'
-                    . csrf_field() . method_field('DELETE') .
-                    '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakit menghapus data ini?\');">Hapus</button></form>';
+                // $btn = '<a href="' . url('/user/' . $user->user_id) . '" class="btn btn-info btn-sm">Detail</a> ';
+                // $btn .= '<a href="' . url('/user/' . $user->user_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
+                // $btn .= '<form class="d-inline-block" method="POST" action="' .
+                //     url('/user/' . $user->user_id) . '">'
+                //     . csrf_field() . method_field('DELETE') .
+                //     '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakit menghapus data ini?\');">Hapus</button></form>';
+                $btn = '<button onclick="modalAction(\'' . url('/user/' . $user->user_id .
+                    '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/user/' . $user->user_id .
+                    '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
+                $btn .= '<button onclick="modalAction(\'' . url('/user/' . $user->user_id .
+                    '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
                 return $btn;
             })
             ->rawColumns(['aksi']) // memberitahu bahwa kolom aksi adalah html
             ->make(true);
+    }
+
+    public function create_supplier_ajax()
+    {
+        $level = LevelModel::select('level_id', 'level_nama')->get();
+        return view('user.create_supplier_ajax')
+            ->with('level', $level);
     }
 
     public function list(Request $request)
@@ -230,21 +243,24 @@ class UserController extends Controller
         redirect('/user/');
     }
 
-    public function show_ajax(string $id) {
+    public function show_ajax(string $id)
+    {
         $user = UserModel::find($id);
         $level = LevelModel::select('level_id', 'level_nama')->get();
 
         return view('user.show_ajax', compact('user', 'level'));
     }
 
-    public function edit_ajax(string $id) {
+    public function edit_ajax(string $id)
+    {
         $user = UserModel::find($id);
         $level = LevelModel::select('level_id', 'level_nama')->get();
 
         return view('user.edit_ajax', compact('user', 'level'));
     }
-    
-    public function update_ajax(Request $request, $id) {
+
+    public function update_ajax(Request $request, $id)
+    {
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
                 'level_id' => 'required|integer',
@@ -280,12 +296,14 @@ class UserController extends Controller
         redirect('/user/');
     }
 
-    public function confirm_ajax(string $id) {
+    public function confirm_ajax(string $id)
+    {
         $user = UserModel::find($id);
         return view('user.confirm_ajax', compact('user'));
     }
 
-    public function delete_ajax(Request $request, $id) {
+    public function delete_ajax(Request $request, $id)
+    {
         try {
             if ($request->ajax() || $request->wantsJson()) {
                 // Cek apakah user ada di database
@@ -297,23 +315,23 @@ class UserController extends Controller
                         'redirect' => url('/user')
                     ], 404); // 404: Not Found
                 }
-    
+
                 // Hapus user
                 $user->delete();
-    
+
                 return response()->json([
                     'status' => true,
                     'message' => 'Data user berhasil dihapus',
                     'redirect' => url('/user')
                 ], 200); // 200: OK
             }
-    
+
             // Jika bukan request AJAX, kembalikan error
             return response()->json([
                 'status' => false,
                 'message' => 'Request tidak valid',
             ], 400); // 400: Bad Request
-    
+
         } catch (\Exception $e) {
             // Tangkap error yang terjadi dan kirim ke frontend
             return response()->json([
@@ -321,5 +339,5 @@ class UserController extends Controller
                 'message' => 'Terjadi kesalahan server: ',
             ], 500); // 500: Internal Server Error
         }
-    }    
+    }
 }
