@@ -29,7 +29,8 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth')->na
 
 Route::middleware(['auth'])->group(function () { // artinya semua route di dalam group ini harus login dulu
     Route::get('/', [WelcomeController::class, 'index']);
-    Route::group(['prefix' => 'user'], function () {
+
+    Route::group(['prefix' => 'user', 'middleware' => 'authorize:ADM'], function () {
         Route::get('/', [UserController::class, 'index']);
         Route::post('/list', [UserController::class, 'list']);
         Route::get('/create', [UserController::class, 'create']);
@@ -48,7 +49,7 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
     });
 
 
-    Route::group(['prefix' => 'supplier'], function () {
+    Route::group(['prefix' => 'supplier', 'middleware' => 'authorize:ADM,MNG,STF'], function () {
         Route::get('/', [SupplierController::class, 'index']);
         Route::get('/{id}/show_ajax', [SupplierController::class, 'show_ajax']); // Menampilkan halaman form tambah user ajax
         Route::post('/list', [SupplierController::class, 'list']);
@@ -83,7 +84,7 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
         Route::delete('/{id}/destroy_ajax', [LevelController::class, 'destroy_ajax']);
     });
 
-    Route::group(['prefix' => 'barang'], function () {
+    Route::group(['prefix' => 'barang', 'middleware' => 'authorize:ADM,SUP,CUS,STF,MNG'], function () {
         //barang
         Route::get('/', [BarangController::class, 'index']);
         Route::post('/list', [BarangController::class, 'list']);
@@ -103,7 +104,7 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
     });
 
     // Kemarin jadi satu dengan barang, tapi sekarang dipisah
-    Route::group(['prefix' => 'kategori'], function () {
+    Route::group(['prefix' => 'kategori', 'middleware' => 'authorize:ADM,SUP,CUS,STF,MNG'], function () {
         Route::get('/', [KategoriController::class, 'index']);
         Route::get('/{id}/show_ajax', [KategoriController::class, 'show_ajax']);
         Route::post('/list', [KategoriController::class, 'list']);

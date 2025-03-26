@@ -13,10 +13,10 @@ class AuthorizeUser
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, $role = ''): Response
+    public function handle(Request $request, Closure $next, ... $role): Response
     {
-        $user = $request->user();
-        if ($user->hasRole($role)) {
+        $user_role = $request->user()->getRole();
+        if (in_array($user_role, $role)) {
             return $next($request);
         }
         abort(403, 'Forbidden. You do not have permission to access this page.');
