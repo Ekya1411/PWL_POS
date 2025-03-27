@@ -27,14 +27,18 @@ Route::get('login', [AuthController::class, 'login'])->name('login');
 Route::post('login', [AuthController::class, 'postlogin']);
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
+Route::get('account/create', [UserController::class, 'create']);
+Route::post('account/store', [UserController::class, 'register']);
+
 Route::middleware(['auth'])->group(function () { // artinya semua route di dalam group ini harus login dulu
     Route::get('/', [WelcomeController::class, 'index']);
 
     Route::group(['prefix' => 'user', 'middleware' => 'authorize:ADM'], function () {
         Route::get('/', [UserController::class, 'index']);
         Route::post('/list', [UserController::class, 'list']);
-        Route::get('/create', [UserController::class, 'create']);
-        Route::post('/', [UserController::class, 'store']);
+        // Di pindah di atas sendiri untuk registrasi user
+        // Route::get('/create', [UserController::class, 'create']);
+        // Route::post('/', [UserController::class, 'store']);
         Route::get('/create_ajax', [UserController::class, 'create_ajax']); // Menampilkan halaman form tambah user ajax
         Route::post('/ajax', [UserController::class, 'store_ajax']); // Menyimpan data user dengan ajax
         Route::get('/{id}/show_ajax', [UserController::class, 'show_ajax']); // Menampilkan halaman form tambah user ajax

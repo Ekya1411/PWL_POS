@@ -49,7 +49,7 @@
                         </div>
                         <small id="error-password" class="error-text text-danger"></small>
                     </div>
-                    <div class="row">
+                    <div class="row mb-3">
                         <div class="col-8">
                             <div class="icheck-primary">
                                 <input type="checkbox" id="remember">
@@ -57,8 +57,12 @@
                             </div>
                         </div>
                         <div class="col-4">
-                            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                            <button type="submit" class="btn btn-primary btn-block">Log In</button>
                         </div>
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center">
+                        <p>Belum memiliki akun? <a href="{{ url('account/create') }}" class="text-center">Sign In</a>
+                        </p>
                     </div>
                 </form>
             </div>
