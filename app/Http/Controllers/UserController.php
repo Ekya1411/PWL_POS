@@ -9,7 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserController extends Controller
 {
@@ -89,31 +90,31 @@ class UserController extends Controller
                 'nama' => 'required|string|max:100',
                 'password' => 'required|min:6'
             ];
-    
+
             $validator = Validator::make($request->all(), $rules);
-    
+
             if ($validator->fails()) {
                 return response()->json([
-                    'status' => false, 
+                    'status' => false,
                     'message' => 'Validasi Gagal',
                     'msgField' => $validator->errors(),
                 ]);
             }
-    
+
             UserModel::create([
                 'level_id' => $request->level_id,
                 'username' => $request->username,
                 'nama' => $request->nama,
                 'password' => bcrypt($request->password) // Jangan lupa hashing password
             ]);
-    
+
             return response()->json([
                 'status' => true,
                 'message' => 'Data user berhasil disimpan',
                 'redirect' => url('/login')
             ]);
         }
-    
+
         // Jika request bukan AJAX
         return redirect('/login/');
     }
@@ -336,7 +337,7 @@ class UserController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
                 // validasi file harus xls atau xlsx, max 1MB
-                'file_barang' => ['required', 'mimes:xlsx', 'max:1024']
+                'file_user' => ['required', 'mimes:xlsx', 'max:1024']
             ];
             $validator = Validator::make($request->all(), $rules);
             if ($validator->fails()) {
@@ -346,7 +347,7 @@ class UserController extends Controller
                     'msgField' => $validator->errors()
                 ]);
             }
-            $file = $request->file('file_barang'); // ambil file dari request
+            $file = $request->file('file_user'); // ambil file dari request
             $reader = IOFactory::createReader('Xlsx'); // load reader file excel
             $reader->setReadDataOnly(true); // hanya membaca data
             $spreadsheet = $reader->load($file->getRealPath()); // load file excel
@@ -386,5 +387,136 @@ class UserController extends Controller
             }
         }
         return redirect('/user');
+    }
+
+    public function upload_profile_pic() {
+        return view('user.upload_profile_form');
+    }
+
+    public function store_profile_pic(Request $request)
+    {
+        $request->validate([
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+    
+        $user = UserModel::find(auth()->id());
+        if (!$user) {
+            return back()->with('error', 'User not found.');
+        }
+        $photo = $request->file('photo');
+    
+        $filename = $user->user_id . '.' . $photo->getClientOriginalExtension();
+    
+        // Hapus file lama
+        $extensions = ['jpg', 'jpeg', 'png', 'gif'];
+        foreach ($extensions as $ext) {
+            $oldPath = "profile_picture/{$user->user_id}.{$ext}";
+            if (Storage::disk('local')->exists($oldPath)) {
+                Storage::disk('local')->delete($oldPath);
+            }
+        }
+    
+        // Simpan file baru
+        $photo->storeAs('profile_picture', $filename);
+    
+        // 💾 Update kolom profile_img di database
+        $user->profile_img = $filename;
+        $user->save();
+    
+        // Cek apakah AJAX
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Foto berhasil diupload!'
+            ]);
+        }
+    
+        // Kalau bukan AJAX, redirect biasa
+        return back()->with('success', 'Foto berhasil diupload!');
+    }
+    
+    public function get_profile_pic()
+    {
+        $user = \App\Models\UserModel::find(auth()->id()); // Pakai model lo sendiri
+
+        if ($user && $user->profile_img) {
+            $path = storage_path("app/profile_picture/{$user->profile_img}");
+            if (file_exists($path)) {
+                return response()->file($path);
+            }
+        }
+    
+        // Default profile
+        $defaultPath = storage_path('app/profile_picture/default-profile.jpg');
+        if (file_exists($defaultPath)) {
+            return response()->file($defaultPath);
+        }
+    
+        abort(404, 'Foto profil tidak ditemukan');
+    }
+
+    public function export_excel()
+    {
+        $user = UserModel::select('level_id', 'username', 'nama')
+            ->orderBy('level_id')
+            ->with('level')
+            ->get();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Kode Level');
+        $sheet->setCellValue('C1', 'Username');
+        $sheet->setCellValue('D1', 'Nama');
+
+        $sheet->getStyle('F1');
+        $no = 1;
+        $baris = 2;
+
+        foreach ($user as $key => $value) {
+            $sheet->setCellValue('A' . $baris, $no);
+            $sheet->setCellValue('B' . $baris, $value->level->level_kode);
+            $sheet->setCellValue('C' . $baris, $value->username);
+            $sheet->setCellValue('D' . $baris, $value->nama);
+            $baris++;
+            $no++;
+        }
+        foreach (range('A', 'D') as $columnID) {
+            $sheet->getColumnDimension($columnID)
+                ->setAutoSize(true);
+        }
+
+        $sheet->setTitle('Data User'); // set title sheet
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'Data User ' . date('Y-m-d H:i:s') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d MY H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer->save('php://output');
+        exit;
+    }
+
+    public function export_pdf()
+    {
+        $user = UserModel::select('level_id', 'username', 'nama')
+            ->orderBy('level_id')
+            ->with('level')
+            ->get();
+
+        $pdf = Pdf::loadView('user.export_pdf', compact('user'));
+        $pdf->setPaper('A4', 'landscape');
+        $pdf->setOptions(["isRemoteEnabled" => true]);
+        $pdf->render();
+
+        return $pdf->stream('Data user ' . date('Y-m-d H:i:s') . '.pdf');
     }
 }

@@ -1,16 +1,16 @@
-<form action="{{ url('/kategori/import_ajax') }}" method="POST" id="form-import" enctype="multipart/form-data">
+<form action="{{ url('/level/import_ajax') }}" method="POST" id="form-import" enctype="multipart/form-data">
     @csrf
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Import Data Kategori</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Import Data Level</h5>
                 <button type="button" class="close" data-dismiss="modal" arialabel="Close"><span
                         aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
                     <label>Download Template</label>
-                    <a href="{{ asset('template_kategori.xlsx') }}" class="btn btn-info btn-sm" download><i
+                    <a href="{{ asset('template_level.xlsx') }}" class="btn btn-info btn-sm" download><i
                             class="fa fa-file-excel"></i>Download</a>
                     <small id="error-kategori_id" class="error-text form-text textdanger"></small>
                 </div>
@@ -21,7 +21,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" data-dismiss="modal" class="btn btnwarning">Batal</button>
                 <button type="submit" class="btn btn-primary">Upload</button>
             </div>
         </div>

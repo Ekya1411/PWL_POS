@@ -11,6 +11,7 @@ use App\Http\Controllers\SupplierController;
 use App\Models\User;
 use GuzzleHttp\Middleware;
 use Illuminate\Support\Facades\Route;
+use Monolog\Level;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,10 @@ Route::post('account/store', [UserController::class, 'register']);
 Route::middleware(['auth'])->group(function () { // artinya semua route di dalam group ini harus login dulu
     Route::get('/', [WelcomeController::class, 'index']);
 
+    Route::get('/profile', [UserController::class, 'get_profile_pic']);
+    Route::get('/upload_profile', [UserController::class, 'upload_profile_pic']);
+    Route::post('/store_profile', [UserController::class, 'store_profile_pic']);
+
     Route::group(['prefix' => 'user', 'middleware' => 'authorize:ADM'], function () {
         Route::get('/', [UserController::class, 'index']);
         Route::post('/list', [UserController::class, 'list']);
@@ -54,6 +59,8 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
 
         Route::get('/import', [UserController::class, 'import']);
         Route::post('/import_ajax', [UserController::class, 'import_ajax']);
+        Route::get('/export_excel', [UserController::class, 'export_excel']);
+        Route::get('/export_pdf', [UserController::class, 'export_pdf']);
     });
 
 
@@ -76,6 +83,8 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
 
         Route::get('/import', [SupplierController::class, 'import']);
         Route::post('/import_ajax', [SupplierController::class, 'import_ajax']);
+        Route::get('/export_excel', [SupplierController::class, 'export_excel']);
+        Route::get('/export_pdf', [SupplierController::class, 'export_pdf']);
     });
 
     Route::group(['prefix' => 'level', 'middleware' => 'authorize:ADM'], function () {
@@ -93,6 +102,11 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
         Route::put('/{id}/update_ajax', [LevelController::class, 'update_ajax']);
         Route::get('/{id}/delete_ajax', [LevelController::class, 'confirm_ajax']);
         Route::delete('/{id}/destroy_ajax', [LevelController::class, 'destroy_ajax']);
+
+        Route::get('/import', [LevelController::class, 'import']);
+        Route::post('/import_ajax', [LevelController::class, 'import_ajax']);
+        Route::get('/export_excel', [LevelController::class, 'export_excel']);
+        Route::get('/export_pdf', [LevelController::class, 'export_pdf']);
     });
 
     Route::group(['prefix' => 'barang', 'middleware' => 'authorize:ADM,SUP,CUS,STF,MNG'], function () {
@@ -133,6 +147,8 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
 
         Route::get('/import', [KategoriController::class, 'import']);
         Route::post('/import_ajax', [KategoriController::class, 'import_ajax']);
+        Route::get('/export_excel', [KategoriController::class, 'export_excel']);
+        Route::get('/export_pdf', [KategoriController::class, 'export_pdf']);
     });
 
     Route::group(['prefix' => 'stok_barang'], function () {
