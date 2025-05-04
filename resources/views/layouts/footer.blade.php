@@ -25,7 +25,7 @@
             </li>
             <li class="nav-header">Pengaturan</li>
             <li class="nav-item">
-                <a href="{{ url('/profile') }}" class="nav-link">
+                <a href="{{ url('/profile') }}" class="nav-link" id="profile">
                     <i class="nav-icon fas fa-user-cog"></i>
                     <p>Profile</p>
                 </a>

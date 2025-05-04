@@ -187,7 +187,7 @@ class SupplierController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             $rules = [
                 // validasi file harus xls atau xlsx, max 1MB
-                'file_barang' => ['required', 'mimes:xlsx', 'max:1024']
+                'file_supplier' => ['required', 'mimes:xlsx', 'max:1024']
             ];
             $validator = Validator::make($request->all(), $rules);
             if ($validator->fails()) {
@@ -197,7 +197,7 @@ class SupplierController extends Controller
                     'msgField' => $validator->errors()
                 ]);
             }
-            $file = $request->file('file_barang'); // ambil file dari request
+            $file = $request->file('file_supplier'); // ambil file dari request
             $reader = IOFactory::createReader('Xlsx'); // load reader file excel
             $reader->setReadDataOnly(true); // hanya membaca data
             $spreadsheet = $reader->load($file->getRealPath()); // load file excel

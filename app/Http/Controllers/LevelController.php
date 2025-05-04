@@ -268,7 +268,7 @@ class LevelController extends Controller
             $spreadsheet = $reader->load($file->getRealPath()); // load file excel
             $sheet = $spreadsheet->getActiveSheet(); // ambil sheet yang aktif
             $data = $sheet->rangeToArray(
-                'A1:B' . $sheet->getHighestRow(),
+                'B1:C' . $sheet->getHighestRow(),
                 null,
                 true,
                 false

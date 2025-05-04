@@ -47,12 +47,11 @@ class BarangController extends Controller
             ->addColumn('kategori_nama', function ($barang) {
                 return $barang->kategori ? $barang->kategori->kategori_nama : '-';
             })
+            ->addColumn('stok', function ($barang) {
+                // Memanggil metode getTotalStok() untuk mendapatkan total stok yang tersedia
+                return $barang->getTotalStok();  // Panggil getTotalStok sebagai metode
+            })                      
             ->addColumn('aksi', function ($barang) { // menambahkan kolom aksi
-                // $btn = '<a href="' . url('/barang/' . $barang->barang_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
-                // $btn .= '<form class="d-inline-block" method="POST" action="' .
-                //     url('/barang/' . $barang->barang_id . '/delete') . '">'
-                //     . csrf_field() . method_field('DELETE') .
-                //     '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakit menghapus data ini?\');">Hapus</button></form>';
                 $btn = '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
                     '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
                 $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id .
@@ -208,7 +207,6 @@ class BarangController extends Controller
 
         return redirect('/barang/');
     }
-
 
     public function show_ajax(string $id)
     {

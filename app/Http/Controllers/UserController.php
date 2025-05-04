@@ -375,6 +375,7 @@ class UserController extends Controller
                     // insert data ke database, jika data sudah ada, maka diabaikan
                     UserModel::insertOrIgnore($insert);
                 }
+                
                 return response()->json([
                     'status' => true,
                     'message' => 'Data berhasil diimport'
@@ -386,7 +387,6 @@ class UserController extends Controller
                 ]);
             }
         }
-        return redirect('/user');
     }
 
     public function upload_profile_pic() {

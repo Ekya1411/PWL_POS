@@ -153,7 +153,45 @@ class BarangSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-        ];
+            [
+                'kategori_id' => 4,
+                'barang_kode' => 'BRG016',
+                'barang_nama' => 'Keripik Singkong Balado',
+                'harga_beli' => 15000,
+                'harga_jual' => 25000,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'kategori_id' => 4,
+                'barang_kode' => 'BRG017',
+                'barang_nama' => 'Cokelat Dark Premium',
+                'harga_beli' => 20000,
+                'harga_jual' => 35000,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // Kosmetik (kategori_id = 5)
+            [
+                'kategori_id' => 5,
+                'barang_kode' => 'BRG018',
+                'barang_nama' => 'Lipstik Matte Nude',
+                'harga_beli' => 50000,
+                'harga_jual' => 75000,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'kategori_id' => 5,
+                'barang_kode' => 'BRG019',
+                'barang_nama' => 'Sabun Muka Herbal',
+                'harga_beli' => 30000,
+                'harga_jual' => 45000,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];  
         DB::table('m_barang')->insert($data);
     }
 }

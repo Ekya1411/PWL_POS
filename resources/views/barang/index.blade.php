@@ -45,15 +45,16 @@
             @if (session('error'))
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
-            <table class="table table-bordered table-sm table-striped table-hover" id="table-barang">
+            <table class="table table-bordered table-sm table-striped table-hover pr-2" id="table-barang">
                 <thead>
                     <tr>
                         <th>No</th>
                         <th>Kode Barang</th>
-                        <th>Kode Barang</th>
+                        <th>Nama Barang</th>
                         <th>Harga Beli</th>
                         <th>Harga Jual</th>
                         <th>Kategori</th>
+                        <th>Stok</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -93,13 +94,13 @@
                 }, {
                     data: "barang_kode",
                     className: "",
-                    width: "10%",
+                    width: "5%",
                     orderable: true,
                     searchable: true
                 }, {
                     data: "barang_nama",
                     className: "",
-                    width: "37%",
+                    width: "20%",
                     orderable: true,
                     searchable: true,
                 }, {
@@ -126,13 +127,19 @@
                     width: "14%",
                     orderable: true,
                     searchable: false
+                },{
+                    data: "stok",
+                    className: "",
+                    width: "5%",
+                    orderable: true,
+                    searchable: false
                 }, {
                     data: "aksi",
                     className: "text-center",
                     width: "14%",
                     orderable: false,
                     searchable: false
-                }]
+                },]
             });
             $('#table-barang_filter input').unbind().bind().on('keyup', function(e) {
                 if (e.keyCode == 13) { // enter key

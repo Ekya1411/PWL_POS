@@ -8,10 +8,13 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\StokController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\ChartController;
 use App\Models\User;
 use GuzzleHttp\Middleware;
 use Illuminate\Support\Facades\Route;
 use Monolog\Level;
+use PhpOffice\PhpSpreadsheet\Worksheet\Row;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +37,7 @@ Route::post('account/store', [UserController::class, 'register']);
 
 Route::middleware(['auth'])->group(function () { // artinya semua route di dalam group ini harus login dulu
     Route::get('/', [WelcomeController::class, 'index']);
+    Route::post('/welcome/transaksi_terbaru', [WelcomeController::class, 'transaksiTerbaru']);
 
     Route::get('/profile', [UserController::class, 'get_profile_pic']);
     Route::get('/upload_profile', [UserController::class, 'upload_profile_pic']);
@@ -109,7 +113,7 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
         Route::get('/export_pdf', [LevelController::class, 'export_pdf']);
     });
 
-    Route::group(['prefix' => 'barang', 'middleware' => 'authorize:ADM,SUP,CUS,STF,MNG'], function () {
+    Route::group(['prefix' => 'barang', 'middleware' => 'authorize:ADM,MNG'], function () {
         //barang
         Route::get('/', [BarangController::class, 'index']);
         Route::post('/list', [BarangController::class, 'list']);
@@ -134,7 +138,7 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
     });
 
     // Kemarin jadi satu dengan barang, tapi sekarang dipisah
-    Route::group(['prefix' => 'kategori', 'middleware' => 'authorize:ADM,SUP,CUS,STF,MNG'], function () {
+    Route::group(['prefix' => 'kategori', 'middleware' => 'authorize:ADM,MNG'], function () {
         Route::get('/', [KategoriController::class, 'index']);
         Route::get('/{id}/show_ajax', [KategoriController::class, 'show_ajax']);
         Route::post('/list', [KategoriController::class, 'list']);
@@ -151,8 +155,37 @@ Route::middleware(['auth'])->group(function () { // artinya semua route di dalam
         Route::get('/export_pdf', [KategoriController::class, 'export_pdf']);
     });
 
-    Route::group(['prefix' => 'stok_barang'], function () {
+    Route::group(['prefix' => 'stok', 'middleware' => 'authorize:ADM,MNG,STF'], function () {
         Route::get('/', [StokController::class, 'index']);
-        Route::post('/list_stok', [StokController::class, 'listStok'])->name('stok_barang.list_stok');
+        Route::post('/list', [StokController::class, 'list']);
+        Route::get('/{id}/show', [StokController::class, 'show']);
+        Route::get('/create', [StokController::class, 'create']);
+        Route::post('/store', [StokController::class, 'store']);
+        Route::get('/{id}/edit', [StokController::class, 'edit']);
+        Route::post('/{id}/update', [StokController::class, 'update']);
+        Route::get('/{id}/delete', [StokController::class, 'delete']);
+        Route::delete('/{id}/destroy', [StokController::class, 'destroy']);
+
+        Route::get('/export_excel', [StokController::class, 'export_excel']);
+        Route::get('/export_pdf', [StokController::class, 'export_pdf']);
+    });
+
+    Route::group(['prefix' => 'transaksi', 'middleware' => 'authorize:ADM,MNG,STF'], function () {
+        Route::get('/', [TransaksiController::class, 'index']);
+        Route::post('/list', [TransaksiController::class, 'list']);
+        Route::get('/{id}/show', [TransaksiController::class, 'show']);
+        Route::get('/create', [TransaksiController::class, 'create']);
+        Route::post('/store', [TransaksiController::class, 'store']);
+        Route::get('/{id}/edit', [TransaksiController::class, 'edit']);
+        Route::post('/{id}/update', [TransaksiController::class, 'update']);
+        Route::get('/{id}/delete', [TransaksiController::class, 'delete']);
+        Route::delete('/{id}/destroy', [TransaksiController::class, 'destroy']);
+
+        Route::get('/export_excel', [TransaksiController::class, 'export_excel']);
+        Route::get('/export_pdf', [TransaksiController::class, 'export_pdf']);
+    });
+
+    Route::group(['prefix' => 'chart'], function () {
+        Route::get('/data', [ChartController::class, 'chartData']);
     });
 });

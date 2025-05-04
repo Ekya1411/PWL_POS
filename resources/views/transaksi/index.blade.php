@@ -4,14 +4,14 @@
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
-                <a href="{{ url('/supplier/export_excel') }}" class="btn btn-sm mt-1 btn-info">
+                <a href="{{ url('/transaksi/export_excel') }}" class="btn btn-sm mt-1 btn-info">
                     <i class="fa fa-file-excel"></i>
                 </a>
-                <a href="{{ url('/supplier/export_pdf') }}" class="btn btn-sm mt-1 btn-danger">
+                <a href="{{ url('/transaksi/export_pdf') }}" class="btn btn-sm mt-1 btn-danger">
                     <i class="fa fa-file-pdf"></i>
                 </a>
-                <button onclick="modalAction('{{ url('/supplier/import') }}')" class="btn btn-sm btn-info mt-1">Import Supplier</button>
-                <button onclick="modalAction('{{ url('supplier/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah</button>
+                <button onclick="modalAction('{{ url('transaksi/create') }}')"
+                    class="btn btn-sm btn-success mt-1">Tambah</button>
             </div>
         </div>
         <div class="card-body">
@@ -21,13 +21,15 @@
             @if (session('error'))
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
-            <table class="table table-bordered table-striped table-hover table-sm" id="table_supplier">
+            <table class="table table-bordered table-striped table-hover table-sm" id="table_transaksi">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Kode Supplier</th>
-                        <th>Nama Supplier</th>
-                        <th>Alamat</th>
+                        <th>No</th>
+                        <th>Petugas</th>
+                        <th>Pembeli</th>
+                        <th>Kode Penjualan</th>
+                        <th>Tanggal Penjualan</th>
+                        <th>Total</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -41,19 +43,22 @@
 @endpush
 @push('js')
     <script>
-        function modalAction(url = '/supplier') {
+        function modalAction(url = '/transaksi') {
             $('#myModal').load(url, function() {
                 $('#myModal').modal('show');
             });
         }
         $(document).ready(function() {
-            var dataUser = $('#table_supplier').DataTable({
+            var dataUser = $('#table_transaksi').DataTable({
                 // serverSide: true, jika ingin menggunakan server side processing
                 serverSide: true,
                 ajax: {
-                    "url": "{{ url('supplier/list') }}",
+                    "url": "{{ url('transaksi/list') }}",
                     "dataType": "json",
                     "type": "POST",
+                    "data": function(d) {
+                        d.level_id = $('#level_id').val()
+                    }
                 },
                 columns: [{
                     // nomor urut dari laravel datatable addIndexColumn()
@@ -62,29 +67,39 @@
                     orderable: false,
                     searchable: false
                 }, {
-                    data: "supplier_kode",
+                    data: "user.nama",
+                    className: "",
+                    // orderable: true, jika ingin kolom ini bisa diurutkan
+                    orderable: true,
+                    // searchable: true, jika ingin kolom ini bisa dicari
+                    searchable: true
+                }, {
+                    data: "pembeli",
                     className: "",
                     orderable: true,
                     searchable: true
                 }, {
-                    data: "supplier_nama",
+                    // mengambil data level hasil dari ORM berelasi
+                    data: "penjualan_kode",
                     className: "",
-                    orderable: true,
+                    orderable: false,
                     searchable: true
                 }, {
-                    data: "supplier_alamat",
+                    data: "penjualan_tanggal",
                     className: "",
-                    orderable: true,
-                    searchable: true
+                    orderable: false,
+                    searchable: false
+                }, {
+                    data: "total",
+                    className: "",
+                    orderable: false,
+                    searchable: false
                 }, {
                     data: "aksi",
                     className: "",
                     orderable: false,
                     searchable: false
                 }]
-            });
-            $('#supplier_id').on('change', function() {
-                dataUser.ajax.reload();
             });
         });
     </script>

@@ -16,8 +16,8 @@
                 </div>
                 <div class="form-group">
                     <label>Pilih File</label>
-                    <input type="file" name="file_barang" id="file_barang" class="formcontrol" required>
-                    <small id="error-file_barang" class="error-text form-text textdanger"></small>
+                    <input type="file" name="file_supplier" id="file_supplier" class="formcontrol" required>
+                    <small id="error-file_supplier" class="error-text form-text textdanger"></small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -38,7 +38,7 @@
         // Validasi manual sebelum submit
         $("#form-import").validate({
             rules: {
-                file_barang: {
+                file_supplier: {
                     required: true,
                     extension: "xlsx"
                 },
@@ -80,7 +80,7 @@
                             title: 'Berhasil',
                             text: response.message
                         });
-                        tableBarang.ajax.reload();
+                        $('#table_supplier').DataTable().ajax.reload(null, false);
                     } else {
                         $('.error-text').text('');
                         $.each(response.msgField, function(prefix, val) {

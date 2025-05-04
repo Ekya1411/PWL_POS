@@ -81,7 +81,7 @@
                             title: 'Berhasil',
                             text: response.message
                         });
-                        tableBarang.ajax.reload();
+                        $('#profile').load(location.href + " #profile > *");
                     } else {
                         $('.error-text').text('');
                         $.each(response.msgField, function(prefix, val) {
