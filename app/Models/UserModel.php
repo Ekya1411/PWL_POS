@@ -3,15 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use App\Models\LevelModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UserModel extends Authenticatable implements JWTSubject
 {
-
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -27,7 +30,7 @@ class UserModel extends Authenticatable implements JWTSubject
     protected $table = 'm_user';
     protected $primaryKey = 'user_id';
 
-    protected $fillable = ['level_id', 'username', 'nama', 'password', 'profile_img'];
+    protected $fillable = ['level_id', 'username', 'nama', 'password', 'profile_img', 'image'];
 
     protected $hidden = ['password'];
 
@@ -50,5 +53,12 @@ class UserModel extends Authenticatable implements JWTSubject
 
     public function getRole(){
         return $this->level->level_kode;
+    }
+
+    protected function image():Attribute
+    {
+        return Attribute::make(
+            get: fn ($image) => url('storage/posts/' . $image),
+        );
     }
 }

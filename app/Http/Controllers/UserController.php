@@ -435,25 +435,25 @@ class UserController extends Controller
         return back()->with('success', 'Foto berhasil diupload!');
     }
     
-    public function get_profile_pic()
-    {
-        $user = \App\Models\UserModel::find(auth()->id()); // Pakai model lo sendiri
+public function get_profile_pic()
+{
+    $user = \App\Models\UserModel::find(auth()->id()); // Pakai model lo sendiri
 
-        if ($user && $user->profile_img) {
-            $path = storage_path("app/profile_picture/{$user->profile_img}");
-            if (file_exists($path)) {
-                return response()->file($path);
-            }
+    if ($user && $user->profile_img) {
+        $path = storage_path("app/profile_picture/{$user->profile_img}");
+        if (file_exists($path)) {
+            return response()->file($path);
         }
-    
-        // Default profile
-        $defaultPath = storage_path('app/profile_picture/default-profile.jpg');
-        if (file_exists($defaultPath)) {
-            return response()->file($defaultPath);
-        }
-    
-        abort(404, 'Foto profil tidak ditemukan');
     }
+
+    // Default profile
+    $defaultPath = storage_path('app/profile_picture/default-profile.jpg');
+    if (file_exists($defaultPath)) {
+        return response()->file($defaultPath);
+    }
+
+    abort(404, 'Foto profil tidak ditemukan');
+}
 
     public function export_excel()
     {

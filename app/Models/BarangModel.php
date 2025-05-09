@@ -12,7 +12,7 @@ class BarangModel extends Model
     protected $table = 'm_barang'; // Pastikan Laravel menggunakan tabel yang benar
     protected $primaryKey = 'barang_id'; // Sesuaikan dengan primary key di tabel
 
-    protected $fillable = ['kategori_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual']; // Kolom yang dapat diisi
+    protected $fillable = ['kategori_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual', 'image']; // Kolom yang dapat diisi
 
     public function kategori()
     {

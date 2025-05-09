@@ -30,7 +30,7 @@ class UserController extends Controller
     public function update(Request $request, UserModel $user)
     {
         $user->update($request->all());
-        return UserModel::find($user);
+        return response()->json($user);
     }
 
     public function destroy(UserModel $user)
@@ -41,4 +41,5 @@ class UserController extends Controller
             'message' => 'User deleted successfully'
         ]);
     }
+    
 }
